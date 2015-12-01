@@ -7,7 +7,7 @@
 #define MQTT_PORT 1883
 
 // Default server name
-#define OSIO_SERVERNAME "opensensors.io"
+#define OSIO_SERVERNAME "mqtt.opensensors.io"
 
 class RaspberryOSIOClient 
 {
