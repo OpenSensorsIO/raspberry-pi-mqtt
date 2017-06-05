@@ -42,7 +42,7 @@ RaspberryOSIOClient::RaspberryOSIOClient(char * userName,
                                          char * deviceId,
                                          char * devicePassword)
 {
-  this->initialize(userName, deviceId, devicePassword, OSIO_SERVERNAME, 0);
+  this->initialize((char * ) userName, (char * ) deviceId, (char *) devicePassword, (char *) OSIO_SERVERNAME, 0);
 }
 
 
@@ -51,7 +51,7 @@ RaspberryOSIOClient::RaspberryOSIOClient(char * userName,
                                          char * devicePassword,
                                          char * serverName)
 {
-  this->initialize(userName, deviceId, devicePassword, serverName, 0);
+  this->initialize((char *) userName, (char *) deviceId, (char *) devicePassword, (char *) serverName, 0);
 }
 
 
@@ -60,7 +60,7 @@ RaspberryOSIOClient::RaspberryOSIOClient(char * userName,
                                          char * devicePassword,
                                          void (*callback)(char*,char*,unsigned int))
 {
-  this->initialize(userName, deviceId, devicePassword, OSIO_SERVERNAME, callback);
+  this->initialize((char * ) userName, (char * ) deviceId, (char *) devicePassword, (char *) OSIO_SERVERNAME, callback);
 }
 
 
@@ -70,7 +70,7 @@ RaspberryOSIOClient::RaspberryOSIOClient(char * userName,
                                          char * serverName,
                                          void (*onMessage)(char*,char*,unsigned int))
 {
-  this->initialize(userName, deviceId, devicePassword, serverName, onMessage);
+  this->initialize((char *) userName, (char *) deviceId, (char *) devicePassword, (char *) serverName, onMessage);
 }
 
 

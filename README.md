@@ -32,7 +32,7 @@ This client library realized as C++ class named RaspberryOSIOClient. There are s
 Constructors which initialize necessary connection parameters. There are some overrides of it ("server name" and "callback" parameters are not mandatory):
 
 ``` code
-  RaspberryOSIOClient(char * userName, char * deviceId, char * devicePassword); 
+  RaspberryOSIOClient(char * userName, char * deviceId, char * devicePassword);
   RaspberryOSIOClient(char * userName, char * deviceId, char * devicePassword, char * serverName);
   RaspberryOSIOClient(char * userName, char * deviceId, char * devicePassword, void (*callback)(char*,char*,unsigned int));
   RaspberryOSIOClient(char * userName, char * deviceId, char * devicePassword, char * serverName, void (*callback)(char*,char*,unsigned int));
@@ -71,13 +71,13 @@ RaspberryOSIOClient * client = 0;
 
 /*
  * Handler for incoming messages.
- */	
-void onMessage(char* topic, char* payload, unsigned int length) 
+ */
+void onMessage(char* topic, char* payload, unsigned int length)
 {
   char* clearMessage = new char[length + 1];
   memset(clearMessage, 0, length + 1);
   memcpy(clearMessage, payload, length);
-  
+
   cout << "Topic: " << topic << ", message: " << clearMessage;
 
   // Break communication cycle when receive "exit".
@@ -87,7 +87,7 @@ void onMessage(char* topic, char* payload, unsigned int length)
   }
 }
 
-int main() 
+int main()
 {
   // Our raspberry MQTT client instance.
   client = new RaspberryOSIOClient("username", "deviceod", "7E4fHOQJ", onMessage);
@@ -129,15 +129,15 @@ using namespace std;
 RaspberryOSIOClient * client = 0;
 
 
-int main() 
+int main()
 {
   // Our raspberry MQTT client instance.
-  client = new RaspberryOSIOClient("username", "deviceid", "7s4ZHOQJ");
+  client = new RaspberryOSIOClient((char *) "username", (char *) "deviceid", (char *) "7s4ZHOQJ");
 
   cout << "Client started." << endl;
   cout << "Publishing \"hi!\" message: ";
 
-  result = client->publish("/users/username/test", "hi!");
+  bool result = client->publish((char *) "/users/username/test", (char *) "hi!");
 
   cout << (result == OSIO_ERROR_SUCCESS ? "success" : "error") << endl;
 
