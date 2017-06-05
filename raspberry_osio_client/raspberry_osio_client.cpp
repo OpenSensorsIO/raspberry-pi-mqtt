@@ -8,7 +8,7 @@ using namespace std;
  * Internal callback for processing incoming messages.
  * It calls more friendly callback supplied by user.
  */
-static void callbackMessageReceived(void * context, const struct mosquitto_message * message)
+static void callbackMessageReceived(struct mosquitto * mosquitto, void * context, const struct mosquitto_message * message)
 {
   RaspberryOSIOClient * _this = (RaspberryOSIOClient *)context;
 
@@ -25,7 +25,7 @@ static void callbackMessageReceived(void * context, const struct mosquitto_messa
  * Internal callback for processing disconnect.
  * We reset authenticated flag to force restore server connection next time.
  */
-static void callbackDisconnected(void * context)
+static void callbackDisconnected(struct mosquitto * mosquitto, void * context, int rc)
 {
   RaspberryOSIOClient * _this = (RaspberryOSIOClient *)context;
   _this->resetConnectedState();
@@ -86,7 +86,7 @@ void RaspberryOSIOClient::initialize(char * userName,
 {
   mosquitto_lib_init();
 
-  this->_data = mosquitto_new(deviceId, this);
+  this->_data = mosquitto_new(deviceId, false, this);
 
   this->_userName = userName;
   this->_devicePassword = devicePassword;
@@ -123,7 +123,7 @@ bool RaspberryOSIOClient::connectIfNecessary()
   // Call it before mosquitto_connect to supply additional user credentials.
   mosquitto_username_pw_set(this->_data, this->_userName, this->_devicePassword);
 
-  int result = mosquitto_connect(this->_data, this->_serverName, MQTT_PORT, 60, false);
+  int result = mosquitto_connect(this->_data, this->_serverName, MQTT_PORT, 60);
   this->_authenticatedInServer = result == MOSQ_ERR_SUCCESS;
   return this->_authenticatedInServer;
 }
@@ -148,7 +148,7 @@ bool RaspberryOSIOClient::publish(char* topic, char* payload)
     return false;
   }
 
-  int result = mosquitto_publish(this->_data, 0, topic, strlen(payload), (const uint8_t*)payload, 0, false);
+  int result = mosquitto_publish(this->_data, 0, topic, strlen(payload), payload, 0, false);
 
   return result == MOSQ_ERR_SUCCESS;
 }
