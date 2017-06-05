@@ -5,10 +5,10 @@
 using namespace std;
 
 /*
- * Internal callback for processing incoming messages. 
+ * Internal callback for processing incoming messages.
  * It calls more friendly callback supplied by user.
  */
-static void callbackMessageReceived(void * context, const struct mosquitto_message * message)
+static void callbackMessageReceived(struct mosquitto * mosquitto, void * context, const struct mosquitto_message * message)
 {
   RaspberryOSIOClient * _this = (RaspberryOSIOClient *)context;
 
@@ -25,7 +25,7 @@ static void callbackMessageReceived(void * context, const struct mosquitto_messa
  * Internal callback for processing disconnect.
  * We reset authenticated flag to force restore server connection next time.
  */
-static void callbackDisconnected(void * context)
+static void callbackDisconnected(struct mosquitto * mosquitto, void * context, int rc)
 {
   RaspberryOSIOClient * _this = (RaspberryOSIOClient *)context;
   _this->resetConnectedState();
@@ -38,39 +38,39 @@ static void callbackDisconnected(void * context)
  * you will not have ability to receive messages from topic you subscribed.
  */
 
-RaspberryOSIOClient::RaspberryOSIOClient(char * userName, 
-                                         char * deviceId, 
+RaspberryOSIOClient::RaspberryOSIOClient(char * userName,
+                                         char * deviceId,
                                          char * devicePassword)
 {
-  this->initialize(userName, deviceId, devicePassword, OSIO_SERVERNAME, 0);
+  this->initialize((char * ) userName, (char * ) deviceId, (char *) devicePassword, (char *) OSIO_SERVERNAME, 0);
 }
 
 
-RaspberryOSIOClient::RaspberryOSIOClient(char * userName, 
-                                         char * deviceId, 
-                                         char * devicePassword, 
+RaspberryOSIOClient::RaspberryOSIOClient(char * userName,
+                                         char * deviceId,
+                                         char * devicePassword,
                                          char * serverName)
 {
-  this->initialize(userName, deviceId, devicePassword, serverName, 0);  
+  this->initialize((char *) userName, (char *) deviceId, (char *) devicePassword, (char *) serverName, 0);
 }
 
 
-RaspberryOSIOClient::RaspberryOSIOClient(char * userName, 
-                                         char * deviceId, 
-                                         char * devicePassword, 
+RaspberryOSIOClient::RaspberryOSIOClient(char * userName,
+                                         char * deviceId,
+                                         char * devicePassword,
                                          void (*callback)(char*,char*,unsigned int))
 {
-  this->initialize(userName, deviceId, devicePassword, OSIO_SERVERNAME, callback);  
+  this->initialize((char * ) userName, (char * ) deviceId, (char *) devicePassword, (char *) OSIO_SERVERNAME, callback);
 }
 
 
-RaspberryOSIOClient::RaspberryOSIOClient(char * userName, 
-                                         char * deviceId, 
-                                         char * devicePassword, 
-                                         char * serverName, 
+RaspberryOSIOClient::RaspberryOSIOClient(char * userName,
+                                         char * deviceId,
+                                         char * devicePassword,
+                                         char * serverName,
                                          void (*onMessage)(char*,char*,unsigned int))
 {
-  this->initialize(userName, deviceId, devicePassword, serverName, onMessage);  
+  this->initialize((char *) userName, (char *) deviceId, (char *) devicePassword, (char *) serverName, onMessage);
 }
 
 
@@ -78,15 +78,15 @@ RaspberryOSIOClient::RaspberryOSIOClient(char * userName,
  * Startup initializer (called from constructors).
  * Do not use it directly.
  */
-void RaspberryOSIOClient::initialize(char * userName, 
-                                     char * deviceId, 
-                                     char * devicePassword, 
-                                     char * serverName, 
+void RaspberryOSIOClient::initialize(char * userName,
+                                     char * deviceId,
+                                     char * devicePassword,
+                                     char * serverName,
                                      void (*onMessage)(char*,char*,unsigned int))
 {
   mosquitto_lib_init();
 
-  this->_data = mosquitto_new(deviceId, this);
+  this->_data = mosquitto_new(deviceId, false, this);
 
   this->_userName = userName;
   this->_devicePassword = devicePassword;
@@ -123,7 +123,7 @@ bool RaspberryOSIOClient::connectIfNecessary()
   // Call it before mosquitto_connect to supply additional user credentials.
   mosquitto_username_pw_set(this->_data, this->_userName, this->_devicePassword);
 
-  int result = mosquitto_connect(this->_data, this->_serverName, MQTT_PORT, 60, false);
+  int result = mosquitto_connect(this->_data, this->_serverName, MQTT_PORT, 60);
   this->_authenticatedInServer = result == MOSQ_ERR_SUCCESS;
   return this->_authenticatedInServer;
 }
@@ -141,14 +141,14 @@ void RaspberryOSIOClient::resetConnectedState()
 /*
  * Publish message to topic.
  */
-bool RaspberryOSIOClient::publish(char* topic, char* payload) 
+bool RaspberryOSIOClient::publish(char* topic, char* payload)
 {
   if (!this->connectIfNecessary())
   {
     return false;
   }
 
-  int result = mosquitto_publish(this->_data, 0, topic, strlen(payload), (const uint8_t*)payload, 0, false);
+  int result = mosquitto_publish(this->_data, 0, topic, strlen(payload), payload, 0, false);
 
   return result == MOSQ_ERR_SUCCESS;
 }
@@ -177,7 +177,7 @@ bool RaspberryOSIOClient::subscribe(char* topic)
 bool RaspberryOSIOClient::loop()
 {
   // We use -1 for default 1000ms waiting for network activity.
-  int result = mosquitto_loop(this->_data, -1);
+  int result = mosquitto_loop(this->_data, -1, 1);
 
   return result == MOSQ_ERR_SUCCESS;
 }
